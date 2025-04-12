@@ -27,8 +27,9 @@ import {
   MapPin,
   User,
 } from "lucide-react";
+import Image from "next/image";
 import { useParams } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
 
 const PaymentMethod = () => {
   return (
@@ -82,11 +83,24 @@ const ResidenceCard = ({
   property: Property;
   currentLease: Lease;
 }) => {
+  const [imgSrc, setImgSrc] = useState(
+    property.photoUrls?.[0] || "/placeholder.jpg"
+  );
+
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden p-6 flex-1 flex flex-col justify-between">
       {/* Header */}
       <div className="flex gap-5">
-        <div className="w-64 h-32 object-cover bg-slate-500 rounded-xl"></div>
+        <div className="w-64 h-32 max-w-64 max-h-32 object-cover bg-slate-500 rounded-xl overflow-hidden relative">
+          <Image
+            src={imgSrc}
+            alt={property.name}
+            fill
+            className="object-cover"
+            sizes=""
+            onError={() => setImgSrc("/placeholder.jpg")}
+          />
+        </div>
 
         <div className="flex flex-col justify-between">
           <div>
@@ -195,11 +209,10 @@ const BillingHistory = ({ payments }: { payments: Payment[] }) => {
                 </TableCell>
                 <TableCell>
                   <span
-                    className={`px-2 py-1 rounded-full text-xs font-semibold border ${
-                      payment.paymentStatus === "Paid"
-                        ? "bg-green-100 text-green-800 border-green-300"
-                        : "bg-yellow-100 text-yellow-800 border-yellow-300"
-                    }`}
+                    className={`px-2 py-1 rounded-full text-xs font-semibold border ${payment.paymentStatus === "Paid"
+                      ? "bg-green-100 text-green-800 border-green-300"
+                      : "bg-yellow-100 text-yellow-800 border-yellow-300"
+                      }`}
                   >
                     {payment.paymentStatus === "Paid" ? (
                       <Check className="w-4 h-4 inline-block mr-1" />

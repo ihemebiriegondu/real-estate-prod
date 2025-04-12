@@ -2,8 +2,9 @@ import express from "express";
 import {
   getProperties,
   getProperty,
-  createProperty,
+  createProperty
 } from "../controllers/propertyControllers";
+import { getLeasesByProperty } from "../controllers/leaseControllers";
 import multer from "multer";
 import { authMiddleware } from "../middleware/authMiddleware";
 
@@ -19,6 +20,11 @@ router.post(
   authMiddleware(["manager"]),
   upload.array("photos"),
   createProperty
+);
+router.get(
+  "/:id/leases",
+  authMiddleware(["manager", "tenant"]),
+  getLeasesByProperty
 );
 
 export default router;

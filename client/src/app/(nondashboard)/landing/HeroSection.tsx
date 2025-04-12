@@ -27,6 +27,7 @@ const HeroSection = () => {
         }&fuzzyMatch=true`
       );
       const data = await response.json();
+      console.log(data)
       if (data.features && data.features.length > 0) {
         const [lng, lat] = data.features[0].center;
         dispatch(
@@ -40,6 +41,7 @@ const HeroSection = () => {
           lat: lat.toString(),
           lng: lng,
         });
+        console.log(params)
         router.push(`/search?${params.toString()}`);
       }
     } catch (error) {

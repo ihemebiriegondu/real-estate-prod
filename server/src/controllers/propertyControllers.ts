@@ -5,11 +5,13 @@ import { S3Client } from "@aws-sdk/client-s3";
 import { Location } from "@prisma/client";
 import { Upload } from "@aws-sdk/lib-storage";
 import axios from "axios";
+import dotenv from "dotenv";
+dotenv.config();
 
 const prisma = new PrismaClient();
 
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION,
+  region: process.env.AWS_REGION
 });
 
 export const getProperties = async (
@@ -29,7 +31,7 @@ export const getProperties = async (
       amenities,
       availableFrom,
       latitude,
-      longitude,
+      longitude
     } = req.query;
 
     let whereConditions: Prisma.Sql[] = [];
@@ -81,7 +83,11 @@ export const getProperties = async (
 
     if (amenities && amenities !== "any") {
       const amenitiesArray = (amenities as string).split(",");
-      whereConditions.push(Prisma.sql`p.amenities @> ${amenitiesArray}`);
+      whereConditions.push(
+        Prisma.sql`p.amenities @> ARRAY[${Prisma.join(
+          amenitiesArray
+        )}]::"Amenity"[]`
+      );
     }
 
     if (availableFrom && availableFrom !== "any") {
@@ -159,8 +165,8 @@ export const getProperty = async (
     const property = await prisma.property.findUnique({
       where: { id: Number(id) },
       include: {
-        location: true,
-      },
+        location: true
+      }
     });
 
     if (property) {
@@ -177,9 +183,9 @@ export const getProperty = async (
           ...property.location,
           coordinates: {
             longitude,
-            latitude,
-          },
-        },
+            latitude
+          }
+        }
       };
       res.json(propertyWithCoordinates);
     }
@@ -212,12 +218,12 @@ export const createProperty = async (
           Bucket: process.env.S3_BUCKET_NAME!,
           Key: `properties/${Date.now()}-${file.originalname}`,
           Body: file.buffer,
-          ContentType: file.mimetype,
+          ContentType: file.mimetype
         };
 
         const uploadResult = await new Upload({
           client: s3Client,
-          params: uploadParams,
+          params: uploadParams
         }).done();
 
         return uploadResult.Location;
@@ -231,19 +237,19 @@ export const createProperty = async (
         country,
         postalcode: postalCode,
         format: "json",
-        limit: "1",
+        limit: "1"
       }
     ).toString()}`;
     const geocodingResponse = await axios.get(geocodingUrl, {
       headers: {
-        "User-Agent": "RealEstateApp (justsomedummyemail@gmail.com",
-      },
+        "User-Agent": "RealEstateApp (aatanda.dammy+1@gmail.com)"
+      }
     });
     const [longitude, latitude] =
       geocodingResponse.data[0]?.lon && geocodingResponse.data[0]?.lat
         ? [
             parseFloat(geocodingResponse.data[0]?.lon),
-            parseFloat(geocodingResponse.data[0]?.lat),
+            parseFloat(geocodingResponse.data[0]?.lat)
           ]
         : [0, 0];
 
@@ -276,12 +282,12 @@ export const createProperty = async (
         applicationFee: parseFloat(propertyData.applicationFee),
         beds: parseInt(propertyData.beds),
         baths: parseFloat(propertyData.baths),
-        squareFeet: parseInt(propertyData.squareFeet),
+        squareFeet: parseInt(propertyData.squareFeet)
       },
       include: {
         location: true,
-        manager: true,
-      },
+        manager: true
+      }
     });
 
     res.status(201).json(newProperty);
