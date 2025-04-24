@@ -11,11 +11,15 @@ const Card = ({
   propertyLink,
 }: CardProps) => {
   const [imgSrc, setImgSrc] = useState(
-    property.photoUrls?.[0] || "/placeholder.jpg"
+    property.photoUrls?.[0]
   );
 
+  const displayImage = (photo: string) => {
+    setImgSrc(photo)
+  }
+
   return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-lg w-full mb-5">
+    (<div className="bg-white rounded-xl overflow-hidden shadow-lg w-full mb-5">
       <div className="relative">
         <div className="w-full h-48 relative">
           <Image
@@ -27,7 +31,27 @@ const Card = ({
             onError={() => setImgSrc("/placeholder.jpg")}
           />
         </div>
-        <div className="absolute bottom-4 left-4 flex gap-2">
+        <div className="relative w-full overflow-auto flex gap-2 ps-3.5 h-12 mt-2">
+          {
+            property.photoUrls?.map((photo: string) => (
+              <div
+                key={photo}
+                className={`h-12 w-12 overflow-hidden relative cursor-pointer border-2 ${photo === imgSrc ? "border-primary-700" : "border-white"} rounded-md`}
+                onClick={() => displayImage(photo)}
+              >
+                <Image
+                  src={photo}
+                  alt={property.name}
+                  fill
+                  className="object-cover !h-12 !w-12"
+                  sizes=""
+                  onError={() => setImgSrc("/placeholder.jpg")}
+                />
+              </div>
+            ))
+          }
+        </div>
+        <div className="absolute bottom-16 left-4 flex gap-2">
           {property.isPetsAllowed && (
             <span className="bg-white/80 text-black text-xs font-semibold px-2 py-1 rounded-full">
               Pets Allowed
@@ -45,9 +69,8 @@ const Card = ({
             onClick={onFavoriteToggle}
           >
             <Heart
-              className={`w-5 h-5 ${
-                isFavorite ? "text-red-500 fill-red-500" : "text-gray-600"
-              }`}
+              className={`w-5 h-5 ${isFavorite ? "text-red-500 fill-red-500" : "text-gray-600"
+                }`}
             />
           </button>
         )}
@@ -80,7 +103,7 @@ const Card = ({
             </span>
           </div>
           <p className="text-lg font-bold mb-3">
-            ${property.pricePerMonth.toFixed(0)}{" "}
+            ₦{property.pricePerMonth.toFixed(0)}{" "}
             <span className="text-gray-600 text-base font-normal"> /month</span>
           </p>
         </div>
@@ -100,7 +123,7 @@ const Card = ({
           </span>
         </div>
       </div>
-    </div>
+    </div>)
   );
 };
 

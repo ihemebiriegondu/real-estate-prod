@@ -122,7 +122,7 @@ const PropertyTenants = () => {
                       </div>
                       <div>{new Date(lease.endDate).toLocaleDateString()}</div>
                     </TableCell>
-                    <TableCell>${lease.rent.toFixed(2)}</TableCell>
+                    <TableCell>₦{lease.rent.toFixed(2)}</TableCell>
                     <TableCell>
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-semibold ${

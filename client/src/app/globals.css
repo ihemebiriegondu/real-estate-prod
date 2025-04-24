@@ -85,7 +85,7 @@ body,
 }
 
 .dashboard-container {
-  @apply pt-8 pb-5 px-8;
+  @apply pt-20 pb-5 px-8;
 }
 
 .mapboxgl-popup-content {
@@ -178,7 +178,7 @@ body,
 
 [data-amplify-authenticator][data-variation="default"] {
   height: 100%;
-  padding: 2rem !important;
+  padding: 0px !important;
 }
 
 [data-amplify-authenticator] [data-amplify-router] {
@@ -192,6 +192,7 @@ body,
   border-radius: var(--radius);
   padding: 2rem !important;
   border: 1px solid hsl(var(--border));
+  background-color: white;
 }
 
 [data-amplify-authenticator] [data-amplify-form] {

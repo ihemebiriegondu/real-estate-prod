@@ -23,7 +23,7 @@ const Map = () => {
     const map = new mapboxgl.Map({
       container: mapContainerRef.current!,
       style: "mapbox://styles/egondu/cm98k0gwy00hg01pg4jo081j1",
-      center: filters.coordinates || [-74.5, 40],
+      center: filters.coordinates || [6.5295115,3.2076284],
       zoom: 9,
     });
 
@@ -73,7 +73,7 @@ const createPropertyMarker = (property: Property, map: mapboxgl.Map) => {
           <div>
             <a href="/search/${property.id}" target="_blank" class="marker-popup-title">${property.name}</a>
             <p class="marker-popup-price">
-              $${property.pricePerMonth}
+              ₦${property.pricePerMonth}
               <span class="marker-popup-price-unit"> / month</span>
             </p>
           </div>

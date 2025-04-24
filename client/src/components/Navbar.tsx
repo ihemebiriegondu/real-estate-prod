@@ -34,10 +34,10 @@ const Navbar = () => {
 
   return (
     <div
-      className="fixed top-0 left-0 w-full z-50 shadow-xl"
+      className="fixed top-0 left-0 w-full z-50"
       style={{ height: `${NAVBAR_HEIGHT}px` }}
     >
-      <div className="flex justify-between items-center w-full py-3 px-8 bg-primary-700 text-white">
+      <div className="flex justify-between items-center w-full py-8 px-8 bg-primary-700 text-white border-b border-b-black/80">
         <div className="flex items-center gap-4 md:gap-6">
           {isDashboardPage && (
             <div className="md:hidden">
@@ -46,7 +46,7 @@ const Navbar = () => {
           )}
           <Link
             href="/"
-            className="cursor-pointer hover:!text-primary-300"
+            className="cursor-pointer"
             scroll={false}
           >
             <div className="flex items-center gap-3">
@@ -58,9 +58,9 @@ const Navbar = () => {
                 className="w-6 h-6"
               />
               <div className="text-xl font-bold">
-                RENT
-                <span className="text-secondary-500 font-light hover:!text-primary-300">
-                  IFUL
+                IBUDO
+                <span className="text-[#D4AF37] font-light">
+                  360
                 </span>
               </div>
             </div>
@@ -68,7 +68,7 @@ const Navbar = () => {
           {isDashboardPage && authUser && (
             <Button
               variant="secondary"
-              className="md:ml-4 bg-primary-50 text-primary-700 hover:bg-secondary-500 hover:text-primary-50"
+              className="md:ml-4 bg-primary-50 text-primary-700 hover:bg-[#D4AF37] hover:text-primary-700"
               onClick={() =>
                 router.push(
                   authUser.userRole?.toLowerCase() === "manager"
@@ -93,11 +93,17 @@ const Navbar = () => {
             </Button>
           )}
         </div>
-        {!isDashboardPage && (
-          <p className="text-primary-200 hidden md:block">
-            Discover your perfect rental apartment with our advanced search
-          </p>
-        )}
+        {/*!isDashboardPage && !authUser && (
+          <div className="hidden md:flex items-center gap-8">
+            <div className="flex items-center gap-6 text-sm font-medium">
+              <Link href="#" className="hover:text-white transition">Product</Link>
+              <Link href="#" className="hover:text-white transition">Solutions</Link>
+              <Link href="#" className="hover:text-white transition">Company</Link>
+              <Link href="#" className="hover:text-white transition">Resources</Link>
+              <Link href="#" className="hover:text-white transition">Pricing</Link>
+            </div>
+          </div>
+        )*/}
         <div className="flex items-center gap-5">
           {authUser ? (
             <>
@@ -114,7 +120,7 @@ const Navbar = () => {
                 <DropdownMenuTrigger className="flex items-center gap-2 focus:outline-none">
                   <Avatar>
                     <AvatarImage src={authUser.userInfo?.image} />
-                    <AvatarFallback className="bg-primary-600">
+                    <AvatarFallback className="bg-teal-400 text-primary-700">
                       {authUser.userRole?.[0].toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -162,7 +168,7 @@ const Navbar = () => {
               <Link href="/signin">
                 <Button
                   variant="outline"
-                  className="text-white border-white bg-transparent hover:bg-white hover:text-primary-700 rounded-lg"
+                  className="text-white border-2 border-white bg-transparent hover:bg-white !py-6 !px-6 hover:text-primary-700 rounded-none"
                 >
                   Sign In
                 </Button>
@@ -170,7 +176,7 @@ const Navbar = () => {
               <Link href="/signup">
                 <Button
                   variant="secondary"
-                  className="text-white bg-secondary-600 hover:bg-white hover:text-primary-700 rounded-lg"
+                  className="text-primary-700 border-2 border-[#D4AF37] bg-[#D4AF37] hover:bg-[#B38E2E] hover:border-[#B38E2E] !py-6 !px-6 text-base hover:text-white rounded-none"
                 >
                   Sign Up
                 </Button>
