@@ -110,7 +110,7 @@ export const getProperties = async (
     if (latitude && longitude) {
       const lat = parseFloat(latitude as string);
       const lng = parseFloat(longitude as string);
-      const radiusInKilometers = 1000;
+      const radiusInKilometers = 10; //reduced this from 1000 so the return radius is smaller
       const degrees = radiusInKilometers / 111; // Converts kilometers to degrees
 
       whereConditions.push(
@@ -230,28 +230,19 @@ export const createProperty = async (
       })
     );
 
-    const geocodingUrl = `https://nominatim.openstreetmap.org/search?${new URLSearchParams(
+    const googleGeocodingUrl = `https://maps.googleapis.com/maps/api/geocode/json?${new URLSearchParams(
       {
-        street: address,
-        city,
-        country,
-        postalcode: postalCode,
-        format: "json",
-        limit: "1"
+        address: `${address}, ${city}, ${state}, ${postalCode}, ${country}`,
+        key: process.env.GOOGLE_MAPS_API_KEY || ""
       }
     ).toString()}`;
-    const geocodingResponse = await axios.get(geocodingUrl, {
-      headers: {
-        "User-Agent": "RealEstateApp (aatanda.dammy+1@gmail.com)"
-      }
-    });
-    const [longitude, latitude] =
-      geocodingResponse.data[0]?.lon && geocodingResponse.data[0]?.lat
-        ? [
-            parseFloat(geocodingResponse.data[0]?.lon),
-            parseFloat(geocodingResponse.data[0]?.lat)
-          ]
-        : [0, 0];
+
+    const geocodingResponse = await axios.get(googleGeocodingUrl);
+
+    const locationData =
+      geocodingResponse.data.results?.[0]?.geometry?.location;
+    const latitude = locationData?.lat || 0;
+    const longitude = locationData?.lng || 0;
 
     // create location
     const [location] = await prisma.$queryRaw<Location[]>`
@@ -259,7 +250,7 @@ export const createProperty = async (
       VALUES (${address}, ${city}, ${state}, ${country}, ${postalCode}, ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326))
       RETURNING id, address, city, state, country, "postalCode", ST_AsText(coordinates) as coordinates;
     `;
-
+   
     // create property
     const newProperty = await prisma.property.create({
       data: {

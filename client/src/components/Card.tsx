@@ -44,7 +44,7 @@ const Card = ({
                   alt={property.name}
                   fill
                   className="object-cover !h-12 !w-12"
-                  sizes=""
+                  sizes="48px"
                   onError={() => setImgSrc("/placeholder.jpg")}
                 />
               </div>

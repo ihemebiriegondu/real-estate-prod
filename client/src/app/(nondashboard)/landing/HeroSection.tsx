@@ -12,43 +12,27 @@ import { FaHouseUser, FaMapLocationDot } from "react-icons/fa6";
 import { MdPriceChange } from "react-icons/md";
 import Link from "next/link";
 import { useGetAuthUserQuery } from "@/state/api";
+import AutocompleteInput from "@/components/AutoCompleteInput";
+import { useAppSelector } from "@/state/redux";
 
 const HeroSection = () => {
   const dispatch = useDispatch();
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
   const { data: authUser } = useGetAuthUserQuery();
+  const filters = useAppSelector((state) => state.global.filters);
 
   const handleLocationSearch = async () => {
-    try {
-      const trimmedQuery = searchQuery.trim();
-      if (!trimmedQuery) return;
+    const lat = Number(filters.coordinates[0]) || 3.2468617;
+    const lng = Number(filters.coordinates[1]) || 6.535408;
+    const name = filters.location || "Lagos";
 
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-          trimmedQuery
-        )}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
-        }&fuzzyMatch=true`
-      );
-      const data = await response.json();
-      if (data.features && data.features.length > 0) {
-        const [lng, lat] = data.features[0].center;
-        dispatch(
-          setFilters({
-            location: trimmedQuery,
-            coordinates: [lat, lng],
-          })
-        );
-        const params = new URLSearchParams({
-          location: trimmedQuery,
-          lat: lat.toString(),
-          lng: lng,
-        });
-        router.push(`/search?${params.toString()}`);
-      }
-    } catch (error) {
-      console.error("error search location:", error);
-    }
+    const params = new URLSearchParams({
+      location: name,
+      lat: lat.toString(),
+      lng: lng.toString(),
+    });
+    router.push(`/search?${params.toString()}`);
   };
 
   return (
@@ -133,12 +117,25 @@ const HeroSection = () => {
             >
               <h2 className="text-xl font-bold mb-4">Find a Property</h2>
               <div className="space-y-4">
-                <Input
-                  type="text"
+                <AutocompleteInput
+                  apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onSelect={(place) => {
+                    const lat = Number(place.geometry?.location?.lat()) || 3.2468617;
+                    const lng = Number(place.geometry?.location?.lng()) || 6.535408;
+
+                    setSearchQuery(place.name || "")
+
+                    dispatch(
+                      setFilters({
+                        location: place.name,
+                        coordinates: [lng, lat],
+                      })
+                    );
+                  }}
                   placeholder="Search by location"
-                  className="bg-white border-primary-700 h-12 text-base"
+                  className="bg-white border-primary-700 h-12 text-base w-full !rounded-md"
+                  showIcon={false}
                 />
                 <Input
                   type="text"

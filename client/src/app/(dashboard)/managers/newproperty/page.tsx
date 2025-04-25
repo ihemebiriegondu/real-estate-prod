@@ -7,13 +7,33 @@ import { PropertyFormData, propertySchema } from "@/lib/schemas";
 import { useCreatePropertyMutation, useGetAuthUserQuery } from "@/state/api";
 import { AmenityEnum, HighlightEnum, PropertyTypeEnum } from "@/lib/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 const NewProperty = () => {
   const [createProperty] = useCreatePropertyMutation();
   const { data: authUser } = useGetAuthUserQuery();
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
+  const router = useRouter()
+
+  useEffect(() => {
+    const loadGoogleMapsScript = () => {
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
+      script.async = true;
+      script.onload = () => {
+        setGoogleMapsLoaded(true);
+        console.log("Google Maps API loaded");
+      };
+      document.head.appendChild(script);
+    };
+
+    loadGoogleMapsScript();
+  }, []);
 
   const form = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
@@ -59,12 +79,67 @@ const NewProperty = () => {
     });
 
     formData.append("managerCognitoId", authUser.cognitoInfo.userId);
+    console.log(formData)
+    await createProperty(formData).then(() => {
+      router.push("/managers/properties")
+    })
+  };
 
-    await createProperty(formData);
+  const getLocation = () => {
+    if (!googleMapsLoaded) {
+      toast.info("Google Maps API is not loaded yet.", {duration: 1500})
+      return;
+    }
+
+    setLocationLoading(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        const geocoder = new google.maps.Geocoder();
+        const latLng = new google.maps.LatLng(latitude, longitude);
+
+        geocoder.geocode({ location: latLng }, (results, status) => {
+          setLocationLoading(false);
+          if (status === "OK" && results && results[0]) {
+            const addressComponents = results[0].address_components;
+
+            const street = addressComponents.find((component) =>
+              component.types.includes("route")
+            )?.long_name || "";
+            const city = addressComponents.find((component) =>
+              component.types.includes("locality")
+            )?.long_name || "";
+            const state = addressComponents.find((component) =>
+              component.types.includes("administrative_area_level_1")
+            )?.long_name || "";
+            const postalCode = addressComponents.find((component) =>
+              component.types.includes("postal_code")
+            )?.long_name || "";
+            const country = addressComponents.find((component) =>
+              component.types.includes("country")
+            )?.long_name || "";
+
+            form.setValue("address", street);
+            form.setValue("city", city);
+            form.setValue("state", state);
+            form.setValue("postalCode", postalCode);
+            form.setValue("country", country);
+          } else {
+            alert("Unable to retrieve your address. Please try again.");
+          }
+        });
+      },
+      (error) => {
+        setLocationLoading(false);
+        alert("Error getting location: " + error.message);
+      }
+    );
   };
 
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container !pt-[84rem]">
       <Header
         title="Add New Property"
         subtitle="Create a new property listing with detailed information"
@@ -205,9 +280,21 @@ const NewProperty = () => {
 
             {/* Additional Information */}
             <div className="space-y-6">
-              <h2 className="text-lg font-semibold mb-4">
-                Additional Information
-              </h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold mb-4">
+                  Additional Information
+                </h2>
+
+                <Button
+                  type="button"
+                  onClick={getLocation}
+                  className="bg-primary-700 text-white"
+                  disabled={locationLoading}
+                >
+                  {locationLoading ? "Getting Location..." : "Use Current Location"}
+                </Button>
+              </div>
+
               <CustomFormField name="address" label="Address" />
               <div className="flex justify-between gap-4">
                 <CustomFormField name="city" label="City" className="w-full" />
