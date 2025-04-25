@@ -5,11 +5,13 @@ import { S3Client } from "@aws-sdk/client-s3";
 import { Location } from "@prisma/client";
 import { Upload } from "@aws-sdk/lib-storage";
 import axios from "axios";
+import dotenv from "dotenv";
+dotenv.config();
 
 const prisma = new PrismaClient();
 
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION,
+  region: process.env.AWS_REGION
 });
 
 export const getProperties = async (
@@ -30,6 +32,7 @@ export const getProperties = async (
       availableFrom,
       latitude,
       longitude,
+      locationType
     } = req.query;
 
     let whereConditions: Prisma.Sql[] = [];
@@ -81,7 +84,11 @@ export const getProperties = async (
 
     if (amenities && amenities !== "any") {
       const amenitiesArray = (amenities as string).split(",");
-      whereConditions.push(Prisma.sql`p.amenities @> ${amenitiesArray}`);
+      whereConditions.push(
+        Prisma.sql`p.amenities @> ARRAY[${Prisma.join(
+          amenitiesArray
+        )}]::"Amenity"[]`
+      );
     }
 
     if (availableFrom && availableFrom !== "any") {
@@ -104,7 +111,7 @@ export const getProperties = async (
     if (latitude && longitude) {
       const lat = parseFloat(latitude as string);
       const lng = parseFloat(longitude as string);
-      const radiusInKilometers = 1000;
+      const radiusInKilometers = 1000; //reduced this from 1000 so the return radius is smaller
       const degrees = radiusInKilometers / 111; // Converts kilometers to degrees
 
       whereConditions.push(
@@ -159,8 +166,8 @@ export const getProperty = async (
     const property = await prisma.property.findUnique({
       where: { id: Number(id) },
       include: {
-        location: true,
-      },
+        location: true
+      }
     });
 
     if (property) {
@@ -177,9 +184,9 @@ export const getProperty = async (
           ...property.location,
           coordinates: {
             longitude,
-            latitude,
-          },
-        },
+            latitude
+          }
+        }
       };
       res.json(propertyWithCoordinates);
     }
@@ -212,40 +219,31 @@ export const createProperty = async (
           Bucket: process.env.S3_BUCKET_NAME!,
           Key: `properties/${Date.now()}-${file.originalname}`,
           Body: file.buffer,
-          ContentType: file.mimetype,
+          ContentType: file.mimetype
         };
 
         const uploadResult = await new Upload({
           client: s3Client,
-          params: uploadParams,
+          params: uploadParams
         }).done();
 
         return uploadResult.Location;
       })
     );
 
-    const geocodingUrl = `https://nominatim.openstreetmap.org/search?${new URLSearchParams(
+    const googleGeocodingUrl = `https://maps.googleapis.com/maps/api/geocode/json?${new URLSearchParams(
       {
-        street: address,
-        city,
-        country,
-        postalcode: postalCode,
-        format: "json",
-        limit: "1",
+        address: `${address}, ${city}, ${state}, ${postalCode}, ${country}`,
+        key: process.env.GOOGLE_MAPS_API_KEY || ""
       }
     ).toString()}`;
-    const geocodingResponse = await axios.get(geocodingUrl, {
-      headers: {
-        "User-Agent": "RealEstateApp (justsomedummyemail@gmail.com",
-      },
-    });
-    const [longitude, latitude] =
-      geocodingResponse.data[0]?.lon && geocodingResponse.data[0]?.lat
-        ? [
-            parseFloat(geocodingResponse.data[0]?.lon),
-            parseFloat(geocodingResponse.data[0]?.lat),
-          ]
-        : [0, 0];
+
+    const geocodingResponse = await axios.get(googleGeocodingUrl);
+
+    const locationData =
+      geocodingResponse.data.results?.[0]?.geometry?.location;
+    const latitude = locationData?.lat || 0;
+    const longitude = locationData?.lng || 0;
 
     // create location
     const [location] = await prisma.$queryRaw<Location[]>`
@@ -276,12 +274,12 @@ export const createProperty = async (
         applicationFee: parseFloat(propertyData.applicationFee),
         beds: parseInt(propertyData.beds),
         baths: parseFloat(propertyData.baths),
-        squareFeet: parseInt(propertyData.squareFeet),
+        squareFeet: parseInt(propertyData.squareFeet)
       },
       include: {
         location: true,
-        manager: true,
-      },
+        manager: true
+      }
     });
 
     res.status(201).json(newProperty);

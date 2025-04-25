@@ -11,12 +11,17 @@ import {
 
 const FooterSection = () => {
   return (
-    <footer className="border-t border-gray-200 py-20">
+    <footer className="py-20 text-white bg-primary-700">
       <div className="max-w-4xl mx-auto px-6 sm:px-8">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4">
             <Link href="/" className="text-xl font-bold" scroll={false}>
-              RENTIFUL
+              <span className="text-xl font-bold">
+                IBUDO
+                <span className="text-[#D4AF37] font-light">
+                  360
+                </span>
+              </span>
             </Link>
           </div>
           <nav className="mb-4">
@@ -42,34 +47,34 @@ const FooterSection = () => {
             <a
               href="#"
               aria-label="Facebook"
-              className="hover:text-primary-600"
+              className="hover:text-teal-500"
             >
               <FontAwesomeIcon icon={faFacebook} className="h-6 w-6" />
             </a>
             <a
               href="#"
               aria-label="Instagram"
-              className="hover:text-primary-600"
+              className="hover:text-teal-500"
             >
               <FontAwesomeIcon icon={faInstagram} className="h-6 w-6" />
             </a>
-            <a href="#" aria-label="Twitter" className="hover:text-primary-600">
+            <a href="#" aria-label="Twitter" className="hover:text-teal-500">
               <FontAwesomeIcon icon={faTwitter} className="h-6 w-6" />
             </a>
             <a
               href="#"
               aria-label="Linkedin"
-              className="hover:text-primary-600"
+              className="hover:text-teal-500"
             >
               <FontAwesomeIcon icon={faLinkedin} className="h-6 w-6" />
             </a>
-            <a href="#" aria-label="Youtube" className="hover:text-primary-600">
+            <a href="#" aria-label="Youtube" className="hover:text-teal-500">
               <FontAwesomeIcon icon={faYoutube} className="h-6 w-6" />
             </a>
           </div>
         </div>
-        <div className="mt-8 text-center text-sm text-gray-500 flex justify-center space-x-4">
-          <span>© RENTiful. All rights reserved.</span>
+        <div className="mt-8 text-center text-sm text-[#D4AF37]/50 flex justify-center space-x-4">
+          <span>© Ibudo360. All rights reserved.</span>
           <Link href="/privacy">Privacy Policy</Link>
           <Link href="/terms">Terms of Service</Link>
           <Link href="/cookies">Cookie Policy</Link>

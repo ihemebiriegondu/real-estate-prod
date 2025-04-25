@@ -6,13 +6,12 @@ import {
 } from "@/state";
 import { useAppSelector } from "@/state/redux";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { debounce } from "lodash";
 import { cleanParams, cn, formatPriceValue } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Filter, Grid, List, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Filter, Grid, List } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -21,6 +20,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PropertyTypeIcons } from "@/lib/constants";
+import AutocompleteInput from "@/components/AutoCompleteInput";
+
+type FiltersKey = keyof FiltersState;
 
 const FiltersBar = () => {
   const dispatch = useDispatch();
@@ -48,53 +50,46 @@ const FiltersBar = () => {
   });
 
   const handleFilterChange = (
-    key: string,
-    value: any,
-    isMin: boolean | null
+    keyOrObj: FiltersKey | Partial<FiltersState>,
+    value?: any,
+    isMin?: boolean
   ) => {
-    let newValue = value;
+    const newFilters: FiltersState = { ...filters };
 
-    if (key === "priceRange" || key === "squareFeet") {
-      const currentArrayRange = [...filters[key]];
-      if (isMin !== null) {
-        const index = isMin ? 0 : 1;
-        currentArrayRange[index] = value === "any" ? null : Number(value);
-      }
-      newValue = currentArrayRange;
-    } else if (key === "coordinates") {
-      newValue = value === "any" ? [0, 0] : value.map(Number);
+    if (typeof keyOrObj === "object") {
+      Object.entries(keyOrObj).forEach(([key, val]) => {
+        newFilters[key as FiltersKey] = val as any;
+      });
     } else {
-      newValue = value === "any" ? "any" : value;
-    }
+      if (keyOrObj === "priceRange") {
+        const currentRange = filters.priceRange || [null, null];
+        const updatedRange: [number | null, number | null] = [...currentRange];
 
-    const newFilters = { ...filters, [key]: newValue };
-    dispatch(setFilters(newFilters));
-    updateURL(newFilters);
-  };
+        if (value === "any") {
+          value = null;
+        } else {
+          value = Number(value);
+        }
 
-  const handleLocationSearch = async () => {
-    try {
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-          searchInput
-        )}.json?access_token=${
-          process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
-        }&fuzzyMatch=true`
-      );
-      const data = await response.json();
-      if (data.features && data.features.length > 0) {
-        const [lng, lat] = data.features[0].center;
-        dispatch(
-          setFilters({
-            location: searchInput,
-            coordinates: [lng, lat],
-          })
-        );
+        if (isMin) {
+          updatedRange[0] = value;
+        } else {
+          updatedRange[1] = value;
+        }
+
+        newFilters[keyOrObj] = updatedRange as any;
+      } else {
+        newFilters[keyOrObj] = value;
       }
-    } catch (err) {
-      console.error("Error search location:", err);
     }
+
+    updateURL(newFilters);
+    dispatch(setFilters(newFilters));
   };
+
+  useEffect(() => {
+    setSearchInput(filters.location)
+  }, [filters.location])
 
   return (
     <div className="flex justify-between items-center w-full py-5">
@@ -114,21 +109,30 @@ const FiltersBar = () => {
         </Button>
 
         {/* Search Location */}
-        <div className="flex items-center">
-          <Input
-            placeholder="Search location"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            className="w-40 rounded-l-xl rounded-r-none border-primary-400 border-r-0"
-          />
-          <Button
-            onClick={handleLocationSearch}
-            className={`rounded-r-xl rounded-l-none border-l-none border-primary-400 shadow-none 
-              border hover:bg-primary-700 hover:text-primary-50`}
-          >
-            <Search className="w-4 h-4" />
-          </Button>
-        </div>
+        <AutocompleteInput
+          apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
+          value={searchInput}
+          onSelect={(place) => {
+            const lat = Number(place.geometry?.location?.lat()) || 3.2468617;
+            const lng = Number(place.geometry?.location?.lng()) || 6.535408;
+
+            setSearchInput(place.name || "")
+
+            handleFilterChange({
+              location: place.name,
+              coordinates: [lng, lat],
+            });
+
+            dispatch(
+              setFilters({
+                location: place.name,
+                coordinates: [lng, lat],
+              })
+            );
+          }}
+          placeholder="Search address or city"
+          showIcon={false}
+        />
 
         {/* Price Range */}
         <div className="flex gap-1">
@@ -148,7 +152,7 @@ const FiltersBar = () => {
               <SelectItem value="any">Any Min Price</SelectItem>
               {[500, 1000, 1500, 2000, 3000, 5000, 10000].map((price) => (
                 <SelectItem key={price} value={price.toString()}>
-                  ${price / 1000}k+
+                  ₦{price / 1000}k+
                 </SelectItem>
               ))}
             </SelectContent>
@@ -170,7 +174,7 @@ const FiltersBar = () => {
               <SelectItem value="any">Any Max Price</SelectItem>
               {[1000, 2000, 3000, 5000, 10000].map((price) => (
                 <SelectItem key={price} value={price.toString()}>
-                  &lt;${price / 1000}k
+                  &lt;₦{price / 1000}k
                 </SelectItem>
               ))}
             </SelectContent>
@@ -182,7 +186,7 @@ const FiltersBar = () => {
           {/* Beds */}
           <Select
             value={filters.beds}
-            onValueChange={(value) => handleFilterChange("beds", value, null)}
+            onValueChange={(value) => handleFilterChange("beds", value)}
           >
             <SelectTrigger className="w-26 rounded-xl border-primary-400">
               <SelectValue placeholder="Beds" />
@@ -199,7 +203,7 @@ const FiltersBar = () => {
           {/* Baths */}
           <Select
             value={filters.baths}
-            onValueChange={(value) => handleFilterChange("baths", value, null)}
+            onValueChange={(value) => handleFilterChange("baths", value)}
           >
             <SelectTrigger className="w-26 rounded-xl border-primary-400">
               <SelectValue placeholder="Baths" />
@@ -217,7 +221,7 @@ const FiltersBar = () => {
         <Select
           value={filters.propertyType || "any"}
           onValueChange={(value) =>
-            handleFilterChange("propertyType", value, null)
+            handleFilterChange("propertyType", value)
           }
         >
           <SelectTrigger className="w-32 rounded-xl border-primary-400">

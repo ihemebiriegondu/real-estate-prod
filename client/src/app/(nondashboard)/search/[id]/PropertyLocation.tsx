@@ -1,10 +1,16 @@
 import { useGetPropertyQuery } from "@/state/api";
 import { Compass, MapPin } from "lucide-react";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
-import React, { useEffect, useRef } from "react";
+import React from "react";
+import {
+  GoogleMap,
+  Marker,
+  useJsApiLoader,
+} from "@react-google-maps/api";
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN as string;
+const containerStyle = {
+  width: "100%",
+  height: "300px",
+};
 
 const PropertyLocation = ({ propertyId }: PropertyDetailsProps) => {
   const {
@@ -12,39 +18,20 @@ const PropertyLocation = ({ propertyId }: PropertyDetailsProps) => {
     isError,
     isLoading,
   } = useGetPropertyQuery(propertyId);
-  const mapContainerRef = useRef(null);
 
-  useEffect(() => {
-    if (isLoading || isError || !property) return;
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,
+  });
 
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current!,
-      style: "mapbox://styles/majesticglue/cm6u301pq008b01sl7yk1cnvb",
-      center: [
-        property.location.coordinates.longitude,
-        property.location.coordinates.latitude,
-      ],
-      zoom: 14,
-    });
-
-    const marker = new mapboxgl.Marker()
-      .setLngLat([
-        property.location.coordinates.longitude,
-        property.location.coordinates.latitude,
-      ])
-      .addTo(map);
-
-    const markerElement = marker.getElement();
-    const path = markerElement.querySelector("path[fill='#3FB1CE']");
-    if (path) path.setAttribute("fill", "#000000");
-
-    return () => map.remove();
-  }, [property, isError, isLoading]);
-
-  if (isLoading) return <>Loading...</>;
+  if (isLoading || !isLoaded) return <>Loading...</>;
   if (isError || !property) {
     return <>Property not Found</>;
   }
+
+  const center = {
+    lat: property.location.coordinates.latitude,
+    lng: property.location.coordinates.longitude,
+  };
 
   return (
     <div className="py-16">
@@ -71,10 +58,24 @@ const PropertyLocation = ({ propertyId }: PropertyDetailsProps) => {
           Get Directions
         </a>
       </div>
-      <div
-        className="relative mt-4 h-[300px] rounded-lg overflow-hidden"
-        ref={mapContainerRef}
-      />
+      <div className="relative mt-4 rounded-lg overflow-hidden">
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={center}
+          zoom={14}
+          options={{
+            fullscreenControl: false,
+            zoomControl: false,
+            mapTypeControl: false,
+            streetViewControl: false,
+            scaleControl: false,
+            rotateControl: false,
+            disableDefaultUI: true,
+          }}
+        >
+          <Marker position={center} />
+        </GoogleMap>
+      </div>
     </div>
   );
 };

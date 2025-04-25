@@ -29,9 +29,9 @@ const components = {
     return (
       <View className="mt-4 mb-7">
         <Heading level={3} className="!text-2xl !font-bold">
-          RENT
+          IBODO
           <span className="text-secondary-500 font-light hover:!text-primary-300">
-            IFUL
+            360
           </span>
         </Heading>
         <p className="text-muted-foreground mt-2">
@@ -151,7 +151,7 @@ const Auth = ({ children }: { children: React.ReactNode }) => {
   // Redirect authenticated users away from auth pages
   useEffect(() => {
     if (user && isAuthPage) {
-      router.push("/");
+      router.push("/search");
     }
   }, [user, isAuthPage, router]);
 
@@ -161,15 +161,23 @@ const Auth = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <div className="h-full">
-      <Authenticator
-        initialState={pathname.includes("signup") ? "signUp" : "signIn"}
-        components={components}
-        formFields={formFields}
-      >
-        {() => <>{children}</>}
-      </Authenticator>
-    </div>
+    (<div className="h-full relative">
+      <div className="absolute top-0 bottom-0 w-full flex items-center justify-center">
+        <video autoPlay muted poster="" loop className="w-full h-full object-fill">
+          <source src="bg-video.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div className={` absolute w-full flex items-center justify-center ${isAuthPage && "h-full"}`}>
+        <Authenticator
+          initialState={pathname.includes("signup") ? "signUp" : "signIn"}
+          components={components}
+          formFields={formFields}
+          className=""
+        >
+          {() => <>{children}</>}
+        </Authenticator>
+      </div>
+    </div>)
   );
 };
 

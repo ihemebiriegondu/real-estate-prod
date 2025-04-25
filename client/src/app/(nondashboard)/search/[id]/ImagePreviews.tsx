@@ -1,5 +1,6 @@
 "use client";
 
+import { useGetPropertyQuery } from "@/state/api";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import React, { useState } from "react";
@@ -20,9 +21,8 @@ const ImagePreviews = ({ images }: ImagePreviewsProps) => {
       {images.map((image, index) => (
         <div
           key={image}
-          className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${
-            index === currentImageIndex ? "opacity-100" : "opacity-0"
-          }`}
+          className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${index === currentImageIndex ? "opacity-100" : "opacity-0"
+            }`}
         >
           <Image
             src={image}

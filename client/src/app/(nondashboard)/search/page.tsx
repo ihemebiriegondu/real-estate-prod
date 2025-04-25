@@ -57,7 +57,7 @@ const SearchPage = () => {
           <FiltersFull />
         </div>
         <Map />
-        <div className="basis-4/12 overflow-y-auto">
+        <div className="basis-2/5 overflow-y-auto">
           <Listings />
         </div>
       </div>

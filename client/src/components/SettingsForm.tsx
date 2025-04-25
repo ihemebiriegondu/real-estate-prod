@@ -27,10 +27,11 @@ const SettingsForm = ({
   const handleSubmit = async (data: SettingsFormData) => {
     await onSubmit(data);
     setEditMode(false);
+    window.location.reload();
   };
 
   return (
-    <div className="pt-8 pb-5 px-8">
+    <div className="pb-5 px-8">
       <div className="mb-5">
         <h1 className="text-xl font-semibold">
           {`${userType.charAt(0).toUpperCase() + userType.slice(1)} Settings`}
@@ -62,7 +63,7 @@ const SettingsForm = ({
               <Button
                 type="button"
                 onClick={toggleEditMode}
-                className="bg-secondary-500 text-white hover:bg-secondary-600"
+                className="bg-primary-700 text-white hover:text-primary-700 hover:bg-teal-400"
               >
                 {editMode ? "Cancel" : "Edit"}
               </Button>
