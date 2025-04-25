@@ -161,22 +161,23 @@ const Auth = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <div className="h-full relative">
-      <div className="bg-green-700 absolute top-0 bottom-0 w-full">
-        <video autoPlay muted poster="" loop>
-          <source src="" type="video/mp4" />
+    (<div className="h-full relative">
+      <div className="absolute top-0 bottom-0 w-full flex items-center justify-center">
+        <video autoPlay muted poster="" loop className="w-full h-full object-fill">
+          <source src="bg-video.mp4" type="video/mp4" />
         </video>
       </div>
-      <div className=" absolute w-full h-full flex items-center justify-center">
+      <div className={` absolute w-full flex items-center justify-center ${isAuthPage && "h-full"}`}>
         <Authenticator
           initialState={pathname.includes("signup") ? "signUp" : "signIn"}
           components={components}
           formFields={formFields}
+          className=""
         >
           {() => <>{children}</>}
         </Authenticator>
       </div>
-    </div>
+    </div>)
   );
 };
 

@@ -16,7 +16,7 @@ const Map = () => {
 
   useEffect(() => {
     if (isLoading || isError || !properties) return;
-    
+
     const loader = new Loader({
       apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
       libraries: ["places"],
@@ -25,10 +25,11 @@ const Map = () => {
     loader.load().then(() => {
       const map = new window.google.maps.Map(mapRef.current!, {
         center: {
-          lat: filters.coordinates?.[1] || 6.535408,
-          lng: filters.coordinates?.[0] || 3.2468617,
+          lat: filters.coordinates?.[1] || 9.0338725,
+          lng: filters.coordinates?.[0] || 8.6774567,
         },
-        zoom: 14,
+        zoom: 7,
+        clickableIcons: false,
         fullscreenControl: false,
         zoomControl: false,
         mapTypeControl: false,
@@ -37,7 +38,6 @@ const Map = () => {
         rotateControl: false,
       });
 
-
       let currentInfoWindow: google.maps.InfoWindow | null = null;
 
       properties.forEach((property) => {
@@ -45,6 +45,20 @@ const Map = () => {
           currentInfoWindow = newWindow;
         });
       });
+
+      const bounds = new google.maps.LatLngBounds();
+      if (properties.length > 0) {
+        properties.forEach((property) => {
+          bounds.extend({
+            lat: property.location.coordinates.latitude || 9.0338725,
+            lng: property.location.coordinates.longitude || 8.6774567,
+          });
+        });
+        map.fitBounds(bounds);
+      } else {
+        map.setCenter({ lat: 9.0338725, lng: 8.6774567 });
+        map.setZoom(6);
+      }
 
       setTimeout(() => {
         google.maps.event.trigger(map, "resize");
@@ -77,8 +91,8 @@ const createGoogleMarker = (
 ) => {
   const marker = new google.maps.Marker({
     position: {
-      lat: property.location.coordinates.latitude || 6.535408,
-      lng: property.location.coordinates.longitude || 3.2468617,
+      lat: property.location.coordinates.latitude,
+      lng: property.location.coordinates.longitude,
     },
     map,
   });
@@ -120,7 +134,6 @@ const createGoogleMarker = (
       setCurrentInfoWindow(infoWindow);
     }
   });
-
 };
 
 

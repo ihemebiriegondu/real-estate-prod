@@ -7,6 +7,7 @@ import { PropertyFormData, propertySchema } from "@/lib/schemas";
 import { useCreatePropertyMutation, useGetAuthUserQuery } from "@/state/api";
 import { AmenityEnum, HighlightEnum, PropertyTypeEnum } from "@/lib/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useJsApiLoader } from "@react-google-maps/api";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -17,23 +18,13 @@ const NewProperty = () => {
   const [createProperty] = useCreatePropertyMutation();
   const { data: authUser } = useGetAuthUserQuery();
   const [locationLoading, setLocationLoading] = useState(false);
-  const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false)
   const router = useRouter()
 
-  useEffect(() => {
-    const loadGoogleMapsScript = () => {
-      const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
-      script.async = true;
-      script.onload = () => {
-        setGoogleMapsLoaded(true);
-        console.log("Google Maps API loaded");
-      };
-      document.head.appendChild(script);
-    };
-
-    loadGoogleMapsScript();
-  }, []);
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+    libraries: ["places"],
+  });
 
   const form = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
@@ -63,7 +54,8 @@ const NewProperty = () => {
     if (!authUser?.cognitoInfo?.userId) {
       throw new Error("No manager ID found");
     }
-
+    
+    setLoading(true)
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
       if (key === "photoUrls") {
@@ -80,14 +72,17 @@ const NewProperty = () => {
 
     formData.append("managerCognitoId", authUser.cognitoInfo.userId);
     console.log(formData)
+   
     await createProperty(formData).then(() => {
       router.push("/managers/properties")
+    }).then(() => {
+      setLoading(false)
     })
   };
 
   const getLocation = () => {
-    if (!googleMapsLoaded) {
-      toast.info("Google Maps API is not loaded yet.", {duration: 1500})
+    if (!isLoaded) {
+      toast.info("Google Maps API is not loaded yet.", { duration: 1500 })
       return;
     }
 
@@ -139,7 +134,7 @@ const NewProperty = () => {
   };
 
   return (
-    <div className="dashboard-container !pt-[84rem]">
+    <div className="dashboard-container">
       <Header
         title="Add New Property"
         subtitle="Create a new property listing with detailed information"
@@ -316,7 +311,7 @@ const NewProperty = () => {
               type="submit"
               className="bg-primary-700 text-white w-full mt-8"
             >
-              Create Property
+              {loading ? 'Creating...' : 'Create Property'}
             </Button>
           </form>
         </Form>

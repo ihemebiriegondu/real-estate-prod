@@ -20,7 +20,7 @@ interface InitialStateTypes {
 
 export const initialState: InitialStateTypes = {
   filters: {
-    location: "Lagos",
+    location: "Nigeria",
     beds: "any",
     baths: "any",
     propertyType: "any",
@@ -28,7 +28,7 @@ export const initialState: InitialStateTypes = {
     availableFrom: "any",
     priceRange: [null, null],
     squareFeet: [null, null],
-    coordinates: [3.2468617, 6.535408],
+    coordinates: [9.0338725, 8.6774567],
   },
   isFiltersFullOpen: false,
   viewMode: "grid",

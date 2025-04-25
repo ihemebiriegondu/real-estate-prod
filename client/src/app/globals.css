@@ -85,7 +85,7 @@ body,
 }
 
 .dashboard-container {
-  @apply pt-0 pb-5 px-8;
+  @apply pt-0 pb-5 px-8 h-fit;
 }
 
 .gm-style-iw {
@@ -165,8 +165,12 @@ body,
 }
 
 [data-amplify-authenticator][data-variation="default"] {
-  height: 100%;
-  padding: 0px !important;
+  max-height: fit-content;
+  overflow: hidden;
+  padding: 1.5rem 0 !important;
+  background-color: white;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
 }
 
 [data-amplify-authenticator] [data-amplify-router] {
@@ -177,10 +181,11 @@ body,
 }
 
 [data-amplify-authenticator] [data-amplify-container] {
-  border-radius: var(--radius);
-  padding: 2rem !important;
-  border: 1px solid hsl(var(--border));
+  padding: 0px 2rem !important;
   background-color: white;
+  overflow: auto;
+  height: 100%;
+  max-height: calc(100svh - 100px);
 }
 
 [data-amplify-authenticator] [data-amplify-form] {

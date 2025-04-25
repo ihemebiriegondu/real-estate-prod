@@ -31,7 +31,8 @@ export const getProperties = async (
       amenities,
       availableFrom,
       latitude,
-      longitude
+      longitude,
+      locationType
     } = req.query;
 
     let whereConditions: Prisma.Sql[] = [];
@@ -110,7 +111,7 @@ export const getProperties = async (
     if (latitude && longitude) {
       const lat = parseFloat(latitude as string);
       const lng = parseFloat(longitude as string);
-      const radiusInKilometers = 10; //reduced this from 1000 so the return radius is smaller
+      const radiusInKilometers = 1000; //reduced this from 1000 so the return radius is smaller
       const degrees = radiusInKilometers / 111; // Converts kilometers to degrees
 
       whereConditions.push(
@@ -250,7 +251,7 @@ export const createProperty = async (
       VALUES (${address}, ${city}, ${state}, ${country}, ${postalCode}, ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326))
       RETURNING id, address, city, state, country, "postalCode", ST_AsText(coordinates) as coordinates;
     `;
-   
+
     // create property
     const newProperty = await prisma.property.create({
       data: {

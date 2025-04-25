@@ -59,7 +59,7 @@ const AutocompleteInput = ({
                 {
                     input: value,
                     componentRestrictions: { country: "ng" },
-                    types: ["geocode"],
+                    types: ["geocode", "establishment"],
                 },
                 (preds) => {
                     setPredictions(preds || []);

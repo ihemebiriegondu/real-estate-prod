@@ -27,6 +27,7 @@ const SettingsForm = ({
   const handleSubmit = async (data: SettingsFormData) => {
     await onSubmit(data);
     setEditMode(false);
+    window.location.reload();
   };
 
   return (
